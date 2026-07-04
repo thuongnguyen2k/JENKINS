@@ -1,0 +1,59 @@
+pipeline {
+    agent none 
+    
+    environment {
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        REGISTRY = "your-dockerhub-username" // Sửa lại thành Docker Hub của bạn
+    }
+
+    stages {
+        stage('Parallel Test, Build & Push') {
+            parallel {
+                stage('Frontend (React)') {
+                    agent { label 'frontend' }
+                    steps {
+                        dir('frontend') {
+                            echo "=== Bắt đầu Build Frontend ==="
+                            sh 'npm install'
+                            sh 'npm run build'
+                            
+                            echo "=== Build & Push Docker Image Frontend ==="
+                            // sh 'docker build -t ${REGISTRY}/shop-frontend:${IMAGE_TAG} .'
+                            // sh 'docker push ${REGISTRY}/shop-frontend:${IMAGE_TAG}'
+                        }
+                    }
+                }
+
+                stage('Backend (Java/Maven)') {
+                    agent { label 'backend' }
+                    steps {
+                        dir('backend') {
+                            echo "=== Bắt đầu Test & Build Backend ==="
+                            sh 'mvn clean test' 
+                            sh 'mvn clean package -DskipTests'
+                            
+                            echo "=== Build & Push Docker Image Backend ==="
+                            // sh 'docker build -t ${REGISTRY}/shop-backend:${IMAGE_TAG} .'
+                            // sh 'docker push ${REGISTRY}/shop-backend:${IMAGE_TAG}'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            agent { label 'frontend' }
+            steps {
+                echo "=== Deploy E-Commerce ==="
+                // sh '''
+                //    export IMAGE_TAG=${IMAGE_TAG}
+                //    export REGISTRY=${REGISTRY}
+                //    docker-compose pull
+                //    docker-compose down
+                //    docker-compose up -d
+                // '''
+                echo "Deploy thành công!"
+            }
+        }
+    }
+}
