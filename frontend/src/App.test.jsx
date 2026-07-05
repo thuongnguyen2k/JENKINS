@@ -5,11 +5,7 @@ import App from './App';
 
 test('renders E-Commerce title', () => {
   render(
-    <BrowserRouter>
-      <CartProvider>
-        <App />
-      </CartProvider>
-    </BrowserRouter>
+    <App />
   );
   
   const titleElement = screen.getByText(/TechShop/i);
