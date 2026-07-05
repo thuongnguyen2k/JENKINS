@@ -33,7 +33,7 @@ services:
       - POSTGRES_PASSWORD=shop_pass
       - POSTGRES_DB=shopdb
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - shop_pgdata:/var/lib/postgresql/data
     restart: always
