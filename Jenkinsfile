@@ -29,6 +29,9 @@ pipeline {
 
                 stage('Backend (Java/Maven)') {
                     agent { label 'backend' }
+                    environment {
+                        JAVA_HOME = '/usr/lib/jvm/java-21-openjdk'
+                    }
                     steps {
                         dir('backend') {
                             echo "=== Bắt đầu Test & Build Backend ==="
