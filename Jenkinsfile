@@ -53,7 +53,7 @@ pipeline {
 
         stage('Deploy to Staging') {
             when {
-                branch 'develop'
+                expression { env.BRANCH_NAME == 'develop' || env.GIT_BRANCH == 'origin/develop' || env.GIT_BRANCH == 'develop' }
             }
             agent { label 'frontend' }
             steps {
@@ -71,7 +71,7 @@ pipeline {
 
         stage('Approval Gate for Production') {
             when {
-                branch 'main'
+                expression { env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' }
             }
             agent none
             steps {
@@ -81,7 +81,7 @@ pipeline {
 
         stage('Deploy to Production') {
             when {
-                branch 'main'
+                expression { env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' }
             }
             agent { label 'frontend' }
             steps {
