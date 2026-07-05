@@ -73,7 +73,7 @@ pipeline {
             when {
                 expression { env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' }
             }
-            agent none
+            agent { label 'frontend' }
             steps {
                 input message: 'Sếp có đồng ý triển khai lên Production không?', ok: 'Deploy ngay!'
             }
