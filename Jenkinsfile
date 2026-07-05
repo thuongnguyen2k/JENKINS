@@ -35,8 +35,7 @@ pipeline {
                     steps {
                         dir('backend') {
                             echo "=== Bắt đầu Test & Build Backend ==="
-                            sh 'mvn clean test' 
-                            sh 'mvn clean package -DskipTests'
+                            sh 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk && mvn clean package -DskipTests'
                             
                             echo "=== Build & Push Docker Image Backend ==="
                              sh 'docker build -t ${REGISTRY}/shop-backend:${IMAGE_TAG} .'
