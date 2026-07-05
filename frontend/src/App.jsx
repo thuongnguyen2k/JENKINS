@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import CartModal from './components/CartModal';
@@ -9,16 +9,14 @@ import Checkout from './pages/Checkout';
 function App() {
   return (
     <CartProvider>
-      <Router>
-        <div style={{ position: 'relative' }}>
-          <Navbar />
-          <CartModal />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/checkout" element={<Checkout />} />
-          </Routes>
-        </div>
-      </Router>
+      <div style={{ position: 'relative' }}>
+        <Navbar />
+        <CartModal />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/checkout" element={<Checkout />} />
+        </Routes>
+      </div>
     </CartProvider>
   );
 }
