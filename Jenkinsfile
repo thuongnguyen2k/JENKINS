@@ -56,9 +56,9 @@ pipeline {
                  sh '''
                     export IMAGE_TAG=${IMAGE_TAG}
                     export REGISTRY=${REGISTRY}
-                    docker-compose pull
-                    docker-compose down
-                    docker-compose up -d
+                    docker compose pull
+                    docker compose down
+                    docker compose up -d
                  '''
                 echo "Deploy thành công!"
             }
