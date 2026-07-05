@@ -1,33 +1,40 @@
 services:
-  frontend:
+  frontend-staging:
     image: ${REGISTRY:-local}/shop-frontend:${IMAGE_TAG:-latest}
-    build: 
-      context: ./frontend
-      dockerfile: Dockerfile
+    container_name: shop-frontend-staging
     ports:
       - "3000:80"
     depends_on:
-      - backend
+      - backend-staging
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
-  backend:
+  backend-staging:
     image: ${REGISTRY:-local}/shop-backend:${IMAGE_TAG:-latest}
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    container_name: shop-backend-staging
     ports:
       - "8081:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shopdb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-staging:5432/shopdb
       - SPRING_DATASOURCE_USERNAME=shop_user
       - SPRING_DATASOURCE_PASSWORD=shop_pass
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     depends_on:
-      - db
+      - db-staging
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
-  db:
+  db-staging:
     image: postgres:15-alpine
+    container_name: shop-db-staging
     environment:
       - POSTGRES_USER=shop_user
       - POSTGRES_PASSWORD=shop_pass
@@ -35,8 +42,13 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - shop_pgdata:/var/lib/postgresql/data
+      - shop_pgdata_staging:/var/lib/postgresql/data
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
 volumes:
-  shop_pgdata:
+  shop_pgdata_staging:

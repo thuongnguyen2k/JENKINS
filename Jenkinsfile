@@ -51,18 +51,49 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to Staging') {
+            when {
+                branch 'develop'
+            }
             agent { label 'frontend' }
             steps {
-                echo "=== Deploy E-Commerce ==="
+                echo "=== Deploy E-Commerce to STAGING ==="
                  sh '''
                     export IMAGE_TAG=${IMAGE_TAG}
                     export REGISTRY=${REGISTRY}
-                    docker compose pull
-                    docker compose down
-                    docker compose up -d
+                    docker compose -f docker-compose.staging.yml pull
+                    docker compose -f docker-compose.staging.yml down
+                    docker compose -f docker-compose.staging.yml up -d
                  '''
-                echo "Deploy thành công!"
+                echo "Deploy Staging thành công!"
+            }
+        }
+
+        stage('Approval Gate for Production') {
+            when {
+                branch 'main'
+            }
+            agent none
+            steps {
+                input message: 'Sếp có đồng ý triển khai lên Production không?', ok: 'Deploy ngay!'
+            }
+        }
+
+        stage('Deploy to Production') {
+            when {
+                branch 'main'
+            }
+            agent { label 'frontend' }
+            steps {
+                echo "=== Deploy E-Commerce to PRODUCTION ==="
+                 sh '''
+                    export IMAGE_TAG=${IMAGE_TAG}
+                    export REGISTRY=${REGISTRY}
+                    docker compose -f docker-compose.prod.yml pull
+                    docker compose -f docker-compose.prod.yml down
+                    docker compose -f docker-compose.prod.yml up -d
+                 '''
+                echo "Deploy Production thành công!"
             }
         }
     }
