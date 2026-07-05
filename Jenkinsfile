@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         IMAGE_TAG = "${env.BUILD_NUMBER}"
-        REGISTRY = "your-dockerhub-username" // Sửa lại thành Docker Hub của bạn
+        REGISTRY = "thuongnguyen2kvp" // CHÚ Ý: Phải là Docker Hub Username, không được dùng Email
     }
 
     stages {
@@ -18,8 +18,11 @@ pipeline {
                             sh 'npm run build'
                             
                             echo "=== Build & Push Docker Image Frontend ==="
-                            // sh 'docker build -t ${REGISTRY}/shop-frontend:${IMAGE_TAG} .'
-                            // sh 'docker push ${REGISTRY}/shop-frontend:${IMAGE_TAG}'
+                             sh 'docker build -t ${REGISTRY}/shop-frontend:${IMAGE_TAG} .'
+                             withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKER_CREDS_PSW', usernameVariable: 'DOCKER_CREDS_USR')]) {
+                                 sh 'echo $DOCKER_CREDS_PSW | docker login -u $DOCKER_CREDS_USR --password-stdin'
+                                 sh 'docker push ${REGISTRY}/shop-frontend:${IMAGE_TAG}'
+                             }
                         }
                     }
                 }
@@ -33,8 +36,11 @@ pipeline {
                             sh 'mvn clean package -DskipTests'
                             
                             echo "=== Build & Push Docker Image Backend ==="
-                            // sh 'docker build -t ${REGISTRY}/shop-backend:${IMAGE_TAG} .'
-                            // sh 'docker push ${REGISTRY}/shop-backend:${IMAGE_TAG}'
+                             sh 'docker build -t ${REGISTRY}/shop-backend:${IMAGE_TAG} .'
+                             withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKER_CREDS_PSW', usernameVariable: 'DOCKER_CREDS_USR')]) {
+                                 sh 'echo $DOCKER_CREDS_PSW | docker login -u $DOCKER_CREDS_USR --password-stdin'
+                                 sh 'docker push ${REGISTRY}/shop-backend:${IMAGE_TAG}'
+                             }
                         }
                     }
                 }
@@ -45,13 +51,13 @@ pipeline {
             agent { label 'frontend' }
             steps {
                 echo "=== Deploy E-Commerce ==="
-                // sh '''
-                //    export IMAGE_TAG=${IMAGE_TAG}
-                //    export REGISTRY=${REGISTRY}
-                //    docker-compose pull
-                //    docker-compose down
-                //    docker-compose up -d
-                // '''
+                 sh '''
+                    export IMAGE_TAG=${IMAGE_TAG}
+                    export REGISTRY=${REGISTRY}
+                    docker-compose pull
+                    docker-compose down
+                    docker-compose up -d
+                 '''
                 echo "Deploy thành công!"
             }
         }
