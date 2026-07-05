@@ -13,8 +13,9 @@ pipeline {
                     agent { label 'frontend' }
                     steps {
                         dir('frontend') {
-                            echo "=== Bắt đầu Build Frontend ==="
+                            echo "=== Bắt đầu Build & Test Frontend ==="
                             sh 'npm install'
+                            sh 'npm run test'
                             sh 'npm run build'
                             
                             echo "=== Build & Push Docker Image Frontend ==="
@@ -35,6 +36,7 @@ pipeline {
                     steps {
                         dir('backend') {
                             echo "=== Bắt đầu Test & Build Backend ==="
+                            sh 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk && mvn clean test'
                             sh 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk && mvn clean package -DskipTests'
                             
                             echo "=== Build & Push Docker Image Backend ==="
