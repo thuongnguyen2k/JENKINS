@@ -2,9 +2,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: shop-ingress
-  annotations:
-    # Rewrite đường dẫn nếu cần thiết (phụ thuộc vào Nginx controller)
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx # Khai báo sử dụng Nginx Ingress Controller để xử lý luồng này
   rules:
