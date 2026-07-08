@@ -3,9 +3,9 @@ kind: Service
 metadata:
   name: frontend # Tên tổng đài nội bộ của Frontend
 spec:
-  type: ClusterIP
+  type: LoadBalancer # Chuyển từ ClusterIP sang LoadBalancer để lấy IP trực tiếp từ MetalLB
   selector:
-    app: frontend # Nối máy tới các Pod có nhãn app=frontend
+    app: frontend 
   ports:
-    - port: 80       # Port nhận request
-      targetPort: 80 # Port thực tế của container Nginx (React)
+    - port: 8888       # Đổi cổng đón khách thành 8888 theo ý bạn
+      targetPort: 80 # Vẫn trỏ vào cổng 80 bên trong container Nginx của React
