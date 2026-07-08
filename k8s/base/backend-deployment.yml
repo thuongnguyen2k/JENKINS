@@ -39,7 +39,7 @@ spec:
             httpGet:
               path: /actuator/health/readiness # Tính năng xịn sò của thư viện Spring Boot Actuator
               port: 8080
-            initialDelaySeconds: 15 # Cho Java hẳn 15 giây để rề rà khởi động
+            initialDelaySeconds: 60 # Cho Java hẳn 60 giây để rề rà khởi động (CPU bị giới hạn nên khởi động rất chậm)
             periodSeconds: 10 # Cứ 10s check 1 lần
             failureThreshold: 3 # Cho phép fail 3 lần (30s) mới kết luận là tịt ngòi
           
@@ -47,6 +47,6 @@ spec:
             httpGet:
               path: /actuator/health/liveness 
               port: 8080
-            initialDelaySeconds: 20 # Cho Java 20s chuẩn bị trước khi bị đưa vào diện giám sát tử hình
+            initialDelaySeconds: 60 # Tăng lên 60s để K8s không "giết oan" Java khi nó đang ì ạch khởi động
             periodSeconds: 15 
             failureThreshold: 3 # Nếu gõ cửa 3 lần mà không thưa -> Treo máy -> K8S SẼ RÚT ĐIỆN VÀ KHỞI ĐỘNG LẠI TỪ ĐẦU!
