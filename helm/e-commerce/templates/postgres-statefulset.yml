@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: StatefulSet # Sử dụng StatefulSet thay vì Deployment để bảo toàn ổ cứng (dữ liệu)
+metadata:
+  name: postgres
+spec:
+  serviceName: postgres # Phải trỏ đúng tên Service Headless
+  replicas: {{ .Values.postgres.replicaCount }} # Chỉ chạy 1 instance Database để tránh xung đột ghi dữ liệu
+  selector:
+    matchLabels:
+      app: postgres # Quản lý các Pod có nhãn app=postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }} # Dùng image Postgres bản nhẹ
+          ports:
+            - containerPort: 5432 # Mở cổng DB mặc định
+          envFrom:
+            - secretRef:
+                name: postgres-secret # Bơm tài khoản/mật khẩu từ Secret vào biến môi trường
+          volumeMounts:
+            - name: postgres-data # Cắm ổ cứng vào container
+              mountPath: /var/lib/postgresql/data # Đường dẫn lưu data thực tế của Postgres
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+  
+  # Yêu cầu K8s tự động đi xin 1 ổ cứng dung lượng 5GB để cắm vào Pod
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ] # Chế độ đọc/ghi cho 1 node duy nhất
+        resources:
+          requests:
+            storage: 2Gi
+

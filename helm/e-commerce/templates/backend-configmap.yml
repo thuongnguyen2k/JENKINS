@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config # Tên của tệp cấu hình
+data:
+  # Cấu hình chuỗi kết nối DB. Chú ý: 'postgres' ở đây chính là tên của Service của DB!
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/shopdb"
+

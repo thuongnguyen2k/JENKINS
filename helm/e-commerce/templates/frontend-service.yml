@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend # Tên tổng đài nội bộ của Frontend
+spec:
+  type: {{ .Values.frontend.service.type }}
+  selector:
+    app: frontend 
+  ports:
+    - port: {{ .Values.frontend.service.port }}
+      targetPort: 80 # Vẫn trỏ vào cổng 80 bên trong container Nginx của React
+

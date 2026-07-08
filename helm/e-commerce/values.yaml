@@ -1,0 +1,49 @@
+# Default values for e-commerce helm chart.
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: thuongnguyen2kvp/shop-frontend
+    tag: "latest"
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+  service:
+    type: LoadBalancer # Để giữ nguyên thiết lập chạy không qua Ingress của bạn
+    port: 8888
+
+backend:
+  replicaCount: 1
+  image:
+    repository: thuongnguyen2kvp/shop-backend
+    tag: "latest"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  env:
+    DB_URL: "jdbc:postgresql://postgres:5432/shop_db"
+    DB_USER: "shop_user"
+
+postgres:
+  replicaCount: 1
+  image:
+    repository: postgres
+    tag: "15-alpine"
+  auth:
+    database: "shop_db"
+    username: "shop_user"
+    password: "shop_password"
+  persistence:
+    size: 5Gi
+
+ingress:
+  enabled: false # Tạm tắt Ingress vì bạn đang dùng LoadBalancer cổng 8888
+  host: staging.shop.local

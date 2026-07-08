@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: {{ .Values.backend.replicaCount }} 
+  selector:
+    matchLabels:
+      app: backend 
+  
+  template: # Bản vẽ Pod
+    metadata:
+      labels:
+        app: backend 
+    spec:
+      containers:
+        - name: backend
+          image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
+          ports:
+            - containerPort: 8080 # App Spring Boot mặc định chạy ở 8080
+          
+          # CÁCH BƠM CẤU HÌNH BÊN NGOÀI VÀO BÊN TRONG CODE (Không hard-code)
+          envFrom:
+            - configMapRef:
+                name: backend-config # Bơm toàn bộ biến môi trường (URL Database...) từ file ConfigMap
+            - secretRef:
+                name: postgres-secret # Bơm tài khoản/mật khẩu Database từ file Két sắt (Secret)
+          
+          resources:
+            requests:
+              memory: {{ .Values.backend.resources.requests.memory }} # Java chạy khá nặng nên cần ít nhất 256MB RAM để khởi động
+              cpu: "200m"
+            limits:
+              memory: {{ .Values.backend.resources.limits.memory }} # Khóa cứng ở 512MB RAM, nếu Java bị tràn bộ nhớ rò rỉ RAM (Memory Leak), K8s sẽ giết và đẻ cái mới.
+              cpu: {{ .Values.backend.resources.limits.cpu }}
+          
+          # HAI BÀI KIỂM TRA SỨC KHỎE ĐẶC THÙ CỦA JAVA
+          readinessProbe: # Bài test 1: K8s hỏi "Java ơi, mày nạp xong Database chưa, nạp xong tao mới cho khách vào?"
+            httpGet:
+              path: /actuator/health/readiness # Tính năng xịn sò của thư viện Spring Boot Actuator
+              port: 8080
+            initialDelaySeconds: 60 # Cho Java hẳn 60 giây để rề rà khởi động (CPU bị giới hạn nên khởi động rất chậm)
+            periodSeconds: 10 # Cứ 10s check 1 lần
+            failureThreshold: 3 # Cho phép fail 3 lần (30s) mới kết luận là tịt ngòi
+          
+          livenessProbe: # Bài test 2: K8s hỏi "Java ơi, mày còn sống hay bị treo đơ rồi?"
+            httpGet:
+              path: /actuator/health/liveness 
+              port: 8080
+            initialDelaySeconds: 60 # Tăng lên 60s để K8s không "giết oan" Java khi nó đang ì ạch khởi động
+            periodSeconds: 15 
+            failureThreshold: 3 # Nếu gõ cửa 3 lần mà không thưa -> Treo máy -> K8S SẼ RÚT ĐIỆN VÀ KHỞI ĐỘNG LẠI TỪ ĐẦU!
+

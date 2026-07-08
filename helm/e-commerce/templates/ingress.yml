@@ -1,0 +1,29 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shop-ingress
+spec:
+  ingressClassName: nginx # Khai báo sử dụng Nginx Ingress Controller để xử lý luồng này
+  rules:
+    - host: {{ .Values.ingress.host }} # Domain name tạm thời (sẽ bị đè bởi Kustomize)
+      http:
+        paths:
+          # LUỒNG 1: Đường dẫn API
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend # Chuyển luồng vào Service backend
+                port:
+                  number: 8080
+          # LUỒNG 2: Đường dẫn React
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend # Chuyển luồng vào Service frontend
+                port:
+                  number: 80
+
+{{- end }}

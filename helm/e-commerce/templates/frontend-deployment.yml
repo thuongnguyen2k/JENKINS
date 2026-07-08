@@ -1,0 +1,40 @@
+apiVersion: apps/v1 # Khai báo nhóm API quản lý tài nguyên. 'apps/v1' là nhóm chuẩn dành cho Deployment, StatefulSet.
+kind: Deployment # Loại tài nguyên là Deployment: Chuyên dùng cho các ứng dụng phi trạng thái (như web, api). Nó tự động quản lý Pod và tự sửa chữa khi Pod chết.
+metadata: # Phần siêu dữ liệu, dùng để định danh cho cái Deployment này
+  name: frontend # Tên gọi duy nhất của Deployment trong không gian (namespace) hiện tại
+spec: # Phần đặc tả chi tiết yêu cầu của bạn đối với K8s
+  replicas: {{ .Values.frontend.replicaCount }} # TÔI YÊU CẦU: Lúc nào cũng phải có đúng 1 bản sao (Pod) của Frontend chạy. Rớt thì phải tự tạo lại ngay.
+  selector: # Tiêu chí để Deployment đi tìm và quản lý "đàn em" (các Pod) của nó
+    matchLabels: # Tiêu chí cụ thể:
+      app: frontend # Bất cứ Pod nào bị dán cái nhãn "app=frontend" đều sẽ nằm dưới sự cai quản của Deployment này.
+  
+  template: # BẢN THIẾT KẾ POD (Khuôn đúc để tạo ra các bản sao)
+    metadata: # Định danh cho các Pod con được đẻ ra
+      labels: # BẮT BUỘC: Phải dán nhãn cho các Pod con này...
+        app: frontend # ...là "app=frontend" để nó ăn khớp với tiêu chí 'selector' ở trên. Nếu không K8s sẽ báo lỗi.
+    
+    spec: # Đặc tả ruột của cái Pod
+      containers: # Một Pod có thể chứa nhiều Container, ở đây ta chỉ cần 1
+        - name: frontend # Tên của Container bên trong Pod
+          image: {{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }} # Đường dẫn tải mã nguồn đã đóng gói Docker (Lấy từ Docker Hub)
+          
+          ports: # Khai báo các cổng mạng cần mở
+            - containerPort: 80 # Bên trong code của React/Nginx đang mở port 80, ta phải báo cho K8s biết để nó thông port.
+          
+          resources: # BẢO VỆ MÁY CHỦ: Khai báo mức độ ăn phần cứng của ứng dụng
+            requests: # (Mức cam kết tối thiểu): K8s phải tìm máy chủ nào ĐẢM BẢO còn trống 128MB RAM mới được cho Pod này vào.
+              memory: {{ .Values.frontend.resources.requests.memory }} # Xin tối thiểu 128 MB RAM (Mi là Mebibyte)
+              cpu: {{ .Values.frontend.resources.requests.cpu }}     # Xin 1/10 sức mạnh của 1 lõi CPU (100 millicpu)
+            limits: # (Mức trần tối đa): Cấm tuyệt đối ứng dụng xài lố mức này. Xài lố là K8s 'RÚT ĐIỆN' giết Pod ngay để cứu máy chủ.
+              memory: {{ .Values.frontend.resources.limits.memory }} # Giới hạn tối đa 256 MB RAM
+              cpu: {{ .Values.frontend.resources.limits.cpu }}     # Giới hạn tối đa 1/4 lõi CPU
+          
+          readinessProbe: # BÀI KIỂM TRA SỨC KHỎE ĐÓN KHÁCH (Readiness)
+            # Khởi động Pod là 1 chuyện, nhưng code bên trong đã nạp xong HTML chưa lại là chuyện khác.
+            httpGet: # Yêu cầu K8s dùng giao thức HTTP...
+              path: / # ...gọi vào trang chủ '/'...
+              port: 80 # ...qua cổng 80.
+            initialDelaySeconds: 5 # Chờ 5 giây sau khi bật Pod rồi mới bắt đầu kiểm tra (để cho app có thời gian thở).
+            periodSeconds: 10 # Nếu pass, cứ 10 giây sau K8s lại gọi điện hỏi thăm 1 lần. 
+            # (Nếu bài kiểm tra thất bại, K8s sẽ giấu Pod này khỏi Service, khách sẽ không truy cập vào đây nữa).
+

@@ -1,0 +1,9 @@
+# Các biến ghi đè cho môi trường Staging
+ingress:
+  enabled: false
+  host: staging.shop.local
+
+frontend:
+  service:
+    type: LoadBalancer
+    port: 8888

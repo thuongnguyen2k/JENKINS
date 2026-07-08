@@ -1,0 +1,19 @@
+# Các biến ghi đè cho môi trường Production
+ingress:
+  enabled: true
+  host: shop.local
+
+frontend:
+  replicaCount: 3 # Tăng chịu tải
+  service:
+    type: ClusterIP # Ở Production ta dùng Ingress đàng hoàng
+    port: 80
+
+backend:
+  replicaCount: 3 # Tăng chịu tải
+  env:
+    DB_URL: "jdbc:postgresql://postgres:5432/shop_db_prod"
+
+postgres:
+  persistence:
+    size: 20Gi
