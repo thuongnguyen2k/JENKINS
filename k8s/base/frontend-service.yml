@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend # Tên tổng đài nội bộ của Frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend # Nối máy tới các Pod có nhãn app=frontend
+  ports:
+    - port: 80       # Port nhận request
+      targetPort: 80 # Port thực tế của container Nginx (React)

@@ -58,14 +58,38 @@ pipeline {
             agent { label 'frontend' }
             steps {
                 echo "=== Deploy E-Commerce to STAGING ==="
-                 sh '''
-                    export IMAGE_TAG=${IMAGE_TAG}
-                    export REGISTRY=${REGISTRY}
-                    docker compose -f docker-compose.staging.yml pull
-                    docker compose -f docker-compose.staging.yml down
-                    docker compose -f docker-compose.staging.yml up -d
-                 '''
+                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                     sh '''
+                         cd k8s/overlays/staging
+                         kustomize edit set image \
+                             thuongnguyen2kvp/shop-frontend=${REGISTRY}/shop-frontend:${IMAGE_TAG} \
+                             thuongnguyen2kvp/shop-backend=${REGISTRY}/shop-backend:${IMAGE_TAG}
+                         kubectl apply -k .
+                         kubectl rollout status deployment/frontend -n shop-staging --timeout=120s
+                         kubectl rollout status deployment/backend -n shop-staging --timeout=120s
+                     '''
+                 }
                 echo "Deploy Staging thành công!"
+            }
+        }
+
+        stage('Verify Staging') {
+            when {
+                expression { env.BRANCH_NAME == 'develop' || env.GIT_BRANCH == 'origin/develop' || env.GIT_BRANCH == 'develop' }
+            }
+            agent { label 'frontend' }
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh '''
+                        echo "=== Pod Status ==="
+                        kubectl get pods -n shop-staging -o wide
+                        echo "=== Service Status ==="
+                        kubectl get svc -n shop-staging
+                        echo "=== Health Check ==="
+                        kubectl wait --for=condition=Ready pod -l app=backend \
+                            -n shop-staging --timeout=60s
+                    '''
+                }
             }
         }
 
@@ -86,13 +110,17 @@ pipeline {
             agent { label 'frontend' }
             steps {
                 echo "=== Deploy E-Commerce to PRODUCTION ==="
-                 sh '''
-                    export IMAGE_TAG=${IMAGE_TAG}
-                    export REGISTRY=${REGISTRY}
-                    docker compose -f docker-compose.prod.yml pull
-                    docker compose -f docker-compose.prod.yml down
-                    docker compose -f docker-compose.prod.yml up -d
-                 '''
+                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                     sh '''
+                         cd k8s/overlays/production
+                         kustomize edit set image \
+                             thuongnguyen2kvp/shop-frontend=${REGISTRY}/shop-frontend:${IMAGE_TAG} \
+                             thuongnguyen2kvp/shop-backend=${REGISTRY}/shop-backend:${IMAGE_TAG}
+                         kubectl apply -k .
+                         kubectl rollout status deployment/frontend -n shop-production --timeout=120s
+                         kubectl rollout status deployment/backend -n shop-production --timeout=120s
+                     '''
+                 }
                 echo "Deploy Production thành công!"
             }
         }

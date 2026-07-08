@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres # Tên miền nội bộ của DB sẽ là 'postgres'
+spec:
+  clusterIP: None # Đây là Headless Service: Sẽ không tạo IP tổng đài ảo, mà trả về thẳng IP thật của Pod
+  selector:
+    app: postgres # Lọc các Pod mang nhãn app=postgres
+  ports:
+    - port: 5432

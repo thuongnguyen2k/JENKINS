@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend # Tên tổng đài nội bộ của Backend
+spec:
+  type: ClusterIP # Phục vụ kết nối nội bộ
+  selector:
+    app: backend # Nối máy tới các Pod có nhãn app=backend
+  ports:
+    - port: 8080       # Port nhận request từ bên ngoài (Frontend hoặc Ingress gọi vào đây)
+      targetPort: 8080 # Port thực tế của container Backend

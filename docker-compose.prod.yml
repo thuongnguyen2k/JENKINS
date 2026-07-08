@@ -7,6 +7,11 @@ services:
     depends_on:
       - backend-prod
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
     deploy:
       resources:
         limits:
@@ -26,6 +31,11 @@ services:
     depends_on:
       - db-prod
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
     deploy:
       resources:
         limits:
@@ -44,6 +54,11 @@ services:
     volumes:
       - shop_pgdata_prod:/var/lib/postgresql/data
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
     deploy:
       resources:
         limits:

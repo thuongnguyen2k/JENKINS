@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop-staging # Tên của không gian làm việc dành cho môi trường thử nghiệm
+  labels:
+    app.kubernetes.io/part-of: e-commerce # Dán nhãn để dễ quản lý tài nguyên theo dự án
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop-production # Tên của không gian làm việc dành cho môi trường thực tế
+  labels:
+    app.kubernetes.io/part-of: e-commerce

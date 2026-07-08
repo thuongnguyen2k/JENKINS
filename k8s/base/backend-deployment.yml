@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: backend 
+  
+  template: # Bản vẽ Pod
+    metadata:
+      labels:
+        app: backend 
+    spec:
+      containers:
+        - name: backend
+          image: thuongnguyen2kvp/shop-backend:latest
+          ports:
+            - containerPort: 8080 # App Spring Boot mặc định chạy ở 8080
+          
+          # CÁCH BƠM CẤU HÌNH BÊN NGOÀI VÀO BÊN TRONG CODE (Không hard-code)
+          envFrom:
+            - configMapRef:
+                name: backend-config # Bơm toàn bộ biến môi trường (URL Database...) từ file ConfigMap
+            - secretRef:
+                name: postgres-secret # Bơm tài khoản/mật khẩu Database từ file Két sắt (Secret)
+          
+          resources:
+            requests:
+              memory: "256Mi" # Java chạy khá nặng nên cần ít nhất 256MB RAM để khởi động
+              cpu: "200m"
+            limits:
+              memory: "512Mi" # Khóa cứng ở 512MB RAM, nếu Java bị tràn bộ nhớ rò rỉ RAM (Memory Leak), K8s sẽ giết và đẻ cái mới.
+              cpu: "500m"
+          
+          # HAI BÀI KIỂM TRA SỨC KHỎE ĐẶC THÙ CỦA JAVA
+          readinessProbe: # Bài test 1: K8s hỏi "Java ơi, mày nạp xong Database chưa, nạp xong tao mới cho khách vào?"
+            httpGet:
+              path: /actuator/health/readiness # Tính năng xịn sò của thư viện Spring Boot Actuator
+              port: 8080
+            initialDelaySeconds: 15 # Cho Java hẳn 15 giây để rề rà khởi động
+            periodSeconds: 10 # Cứ 10s check 1 lần
+            failureThreshold: 3 # Cho phép fail 3 lần (30s) mới kết luận là tịt ngòi
+          
+          livenessProbe: # Bài test 2: K8s hỏi "Java ơi, mày còn sống hay bị treo đơ rồi?"
+            httpGet:
+              path: /actuator/health/liveness 
+              port: 8080
+            initialDelaySeconds: 20 # Cho Java 20s chuẩn bị trước khi bị đưa vào diện giám sát tử hình
+            periodSeconds: 15 
+            failureThreshold: 3 # Nếu gõ cửa 3 lần mà không thưa -> Treo máy -> K8S SẼ RÚT ĐIỆN VÀ KHỞI ĐỘNG LẠI TỪ ĐẦU!

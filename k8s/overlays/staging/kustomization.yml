@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+namespace: shop-staging
+
+patches:
+  - target:
+      kind: Ingress
+      name: shop-ingress
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: staging.shop.local
